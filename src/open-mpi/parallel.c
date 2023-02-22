@@ -64,8 +64,9 @@ void fillFreqMatrix(struct Matrix *mat, struct FreqMatrix *freq_domain) {
     int world_rank, world_size;
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-
     printf("World Size: %d\n", world_size);
+
+    // MPI_Bcast(&freq_domain->mat, freq_domain->size * freq_domain->size, MPI_DOUBLE_COMPLEX, 0, MPI_COMM_WORLD);
 
     if (world_rank == 0) {
         /* Master Process */

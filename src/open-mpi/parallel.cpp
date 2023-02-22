@@ -25,14 +25,12 @@ class Matrix {
             return element;
         }
 
-        complex<double> handlerRow(int k, int l, int i) {
-            MPI_Init(NULL, NULL);
-
+        complex<double> handlerRow(int k, int l, int i, int parent_world_rank) {
             int world_rank;
             MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
 
             complex<double> row = 0;
-            if (world_rank == 0) {
+            if (world_rank == parent_world_rank) {
                 /* Master Process */
 
                 /* Send Index */
@@ -58,14 +56,10 @@ class Matrix {
                 MPI_Send(&element, 1, MPI_DOUBLE_COMPLEX, 0, 0, MPI_COMM_WORLD);
             }
 
-            MPI_Finalize();
-
             return row;
         }
 
         complex<double> handlerColumn(int k, int l) {
-            MPI_Init(NULL, NULL);
-
             int world_rank;
             MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
 
@@ -92,11 +86,9 @@ class Matrix {
                 MPI_Recv(&i, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
                 /* Send Row */
-                complex<double> row = this->handlerRow(k, l, i);
+                complex<double> row = this->handlerRow(k, l, i, world_rank);
                 MPI_Send(&row, 1, MPI_DOUBLE_COMPLEX, 0, 0, MPI_COMM_WORLD);
             }
-
-            MPI_Finalize();
 
             return total;
         }
@@ -129,10 +121,11 @@ class Matrix {
         }
 };
 
-int main(void) {
+int main(int argc, char* argv[]) {
     Matrix *source = new Matrix();
     source->readMatrix();
 
+    MPI_Init(&argc, &argv);
     complex<double> sum = 0.0;
     for (int i = 0; i < source->size(); i++) {
         for (int j = 0; j < source->size(); j++) {
@@ -140,6 +133,8 @@ int main(void) {
             sum += el;
         }
     }
-    cout << sum / (double) source->size();
+    MPI_Finalize();
+
+    cout << sum / (double) source->size() << endl;
     return 0;
 }

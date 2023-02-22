@@ -27,7 +27,7 @@ double complex dft(struct Matrix *mat, int k, int l) {
     for (int m = 0; m < mat->size; m++) {
         for (int n = 0; n < mat->size; n++) {
             double complex arg      = (k*m / (double) mat->size) + (l*n / (double) mat->size);
-            double complex exponent = cexp(-2.0I * M_PI * arg);
+            double complex exponent = cexp(0.0 - 2.0 * I * M_PI * arg);
             element += mat->mat[m][n] * exponent;
         }
     }
@@ -56,7 +56,7 @@ int main(void) {
         printf("\n");
     }
     sum /= source.size;
-    printf("Average : (%lf, %lf)", creal(sum), cimag(sum));
+    printf("Average : %lf + %lfi\n", creal(sum), cimag(sum));
 
     return 0;
 }

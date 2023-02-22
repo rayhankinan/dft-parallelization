@@ -43,53 +43,8 @@ double complex handleRow(struct Matrix *mat, int k, int l, int i) {
 double complex handleColumn(struct Matrix *mat, int k, int l) {
     double complex element = 0.0;
 
-    int world_rank, world_size;
-    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-
-    if (world_rank == 0) {
-        /* Master Process */
-        int element_per_process = mat->size / world_size;
-        int extra_elements = mat->size % world_size;
-
-        /* Send Divisible Process */
-        for (int i = 1; i < world_size; i++) {
-            int processed_size = i * element_per_process;
-            int current_size = processed_size < mat->size ? element_per_process : extra_elements;
-
-            MPI_Send(&current_size, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
-            MPI_Send(&processed_size, current_size, MPI_INT, i, 0, MPI_COMM_WORLD);
-        }
-
-        /* Work on Master Process */
-        for (int i = 0; i < element_per_process; i++) {
-            element += handleRow(mat, k, l, i);
-        }
-
-        /* Receive Row */
-        double complex row;
-        for (int i = 1; i < world_size; i++) {
-            MPI_Recv(&row, 1, MPI_DOUBLE_COMPLEX, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            element += row;
-        }
-    } else {
-        /* Slave Process */
-
-        /* Receive Process */
-        int elements_received;
-        int index_received;
-        double complex temp_element = 0.0;
-
-        MPI_Recv(&elements_received, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        MPI_Recv(&index_received, elements_received, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
-        /* Work on Slave Process */
-        for (int i = index_received; i < index_received + elements_received; i++) {
-            temp_element += handleRow(mat, k, l, i);
-        }
-
-        /* Send Row */
-        MPI_Send(&temp_element, 1, MPI_DOUBLE_COMPLEX, 0, 0, MPI_COMM_WORLD);
+    for (int i = 0; i < mat->size; i++) {
+        element += handleRow(mat, k, l, i);
     }
 
     return element;
@@ -101,21 +56,85 @@ double complex dft(struct Matrix *mat, int k, int l) {
     return element / (double) (mat->size*mat->size);
 }
 
+void fillFreqMatrix(struct Matrix *mat, struct FreqMatrix *freq_domain) {
+    MPI_Init(NULL, NULL);
+
+    freq_domain->size = mat->size;
+
+    int world_rank, world_size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
+    printf("World Size: %d\n", world_size);
+
+    if (world_rank == 0) {
+        /* Master Process */
+        printf("Master Process %d\n", world_rank);
+
+        int element_per_process = mat->size / world_size;
+        int extra_elements = mat->size % world_size;
+
+        /* Send Divisible Process */
+        for (int i = 1; i < world_size; i++) {
+            int processed_size = i * element_per_process;
+            int current_size = processed_size < mat->size ? element_per_process : extra_elements;
+
+            printf("Current Size: %d\n", current_size);
+
+            MPI_Send(&current_size, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
+            MPI_Send(&processed_size, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
+        }
+
+        /* Work on Master Process */
+        for (int i = 0; i < element_per_process; i++) {
+            for (int j = 0; j < mat->size; j++) {
+                freq_domain->mat[i][j] = dft(mat, i, j);
+            }
+        }
+
+        /* Receive Row */
+        int a;
+        for (int i = 1; i < world_size; i++) {
+            printf("Waiting: %d\n", i);
+            MPI_Recv(&a, 1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        }
+
+        printf("Master Process Finished %d\n", world_rank);
+
+    } else {
+        /* Slave Process */
+        printf("Slave Process %d\n", world_rank);
+
+        /* Receive Process */
+        int elements_received;
+        int index_received;
+
+        MPI_Recv(&elements_received, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(&index_received, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+        /* Work on Slave Process */
+        for (int i = index_received; i < index_received + elements_received; i++) {
+            for (int j = 0; j < mat->size; j++) {
+                freq_domain->mat[i][j] = dft(mat, i, j);
+            }
+        }
+
+        /* Send Row */
+        int a = 0;
+        MPI_Send(&a, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+
+        printf("Slave Process %d Finished\n", world_rank);
+    }
+
+    MPI_Finalize();
+}
+
 int main(void) {
     struct Matrix source;
     struct FreqMatrix freq_domain;
 
     readMatrix(&source);
-    freq_domain.size = source.size;
-
-    MPI_Init(NULL, NULL);
-    for (int m = 0; m < source.size; m++) {
-        for (int n = 0; n < source.size; n++) {
-            freq_domain.mat[m][n] = dft(&source, m, n);
-        }
-    }
-    MPI_Barrier(MPI_COMM_WORLD);
-    MPI_Finalize();
+    fillFreqMatrix(&source, &freq_domain);
 
     /* Print Result */
     double complex sum = 0.0;

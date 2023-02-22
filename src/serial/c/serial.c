@@ -6,12 +6,12 @@
 #define MAX_N 512
 
 struct Matrix {
-    int    size;
+    int size;
     double mat[MAX_N][MAX_N];
 };
 
 struct FreqMatrix {
-    int    size;
+    int size;
     double complex mat[MAX_N][MAX_N];
 };
 
@@ -26,18 +26,17 @@ double complex dft(struct Matrix *mat, int k, int l) {
     double complex element = 0.0;
     for (int m = 0; m < mat->size; m++) {
         for (int n = 0; n < mat->size; n++) {
-            double complex arg      = (k*m / (double) mat->size) + (l*n / (double) mat->size);
-            double complex exponent = cexp(0.0 - 2.0 * I * M_PI * arg);
+            double complex arg = (k*m / (double) mat->size) + (l*n / (double) mat->size);
+            double complex exponent = cexp(-2.0 * I * M_PI * arg);
             element += mat->mat[m][n] * exponent;
         }
     }
+
     return element / (double) (mat->size*mat->size);
 }
 
-
-
 int main(void) {
-    struct Matrix     source;
+    struct Matrix source;
     struct FreqMatrix freq_domain;
     readMatrix(&source);
     freq_domain.size = source.size;
@@ -55,8 +54,8 @@ int main(void) {
         }
         printf("\n");
     }
-    sum /= source.size;
-    printf("Average : %lf + %lfi\n", creal(sum), cimag(sum));
+
+    printf("Sum : (%lf, %lf)\n", creal(sum), cimag(sum));
 
     return 0;
 }

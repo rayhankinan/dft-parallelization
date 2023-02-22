@@ -53,7 +53,7 @@ double complex handleColumn(struct Matrix *mat, int k, int l) {
 double complex dft(struct Matrix *mat, int k, int l) {
     double complex element = handleColumn(mat, k, l);
 
-    return element / (double) (mat->size*mat->size);
+    return element / (double) (mat->size * mat->size);
 }
 
 void fillFreqMatrix(struct Matrix *mat, struct FreqMatrix *freq_domain) {
@@ -84,8 +84,9 @@ void fillFreqMatrix(struct Matrix *mat, struct FreqMatrix *freq_domain) {
             MPI_Send(&index_sent, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
             MPI_Send(&mat->size, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
 
-            for (int j = index_sent; j < index_sent + elements_sent; j++) {
-                MPI_Send(&(mat->mat[j][0]), mat->size, MPI_DOUBLE, i, 0, MPI_COMM_WORLD);
+            /* TO DO: Ganti ini dengan broadcast */
+            for (int j = 0; j < mat->size; j++) {
+                MPI_Send(&(mat->mat[j]), mat->size, MPI_DOUBLE, i, 0, MPI_COMM_WORLD);
             }
         }
 
@@ -107,7 +108,7 @@ void fillFreqMatrix(struct Matrix *mat, struct FreqMatrix *freq_domain) {
             printf("Received: %d\n", i);
 
             for (int j = index_received; j < index_received + elements_received; j++) {
-                MPI_Recv(&(freq_domain->mat[j][0]), mat->size, MPI_DOUBLE_COMPLEX, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                MPI_Recv(&(freq_domain->mat[j]), mat->size, MPI_DOUBLE_COMPLEX, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
             }
         }
 
@@ -137,8 +138,8 @@ void fillFreqMatrix(struct Matrix *mat, struct FreqMatrix *freq_domain) {
         MPI_Recv(&index_received, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         MPI_Recv(&mat->size, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-        for (int i = index_received; i < index_received + elements_received; i++) {
-            MPI_Recv(&(mat->mat[i][0]), mat->size, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        for (int i = 0; i < mat->size; i++) {
+            MPI_Recv(&(mat->mat[i]), mat->size, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         }
 
         /* Work on Slave Process */
@@ -153,7 +154,7 @@ void fillFreqMatrix(struct Matrix *mat, struct FreqMatrix *freq_domain) {
         MPI_Send(&index_received, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
 
         for (int i = index_received; i < index_received + elements_received; i++) {
-            MPI_Send(&(freq_domain->mat[i][0]), mat->size, MPI_DOUBLE_COMPLEX, 0, 0, MPI_COMM_WORLD);
+            MPI_Send(&(freq_domain->mat[i]), mat->size, MPI_DOUBLE_COMPLEX, 0, 0, MPI_COMM_WORLD);
         }
 
         printf("Slave Process %d Finished\n", world_rank);

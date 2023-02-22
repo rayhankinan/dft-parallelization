@@ -2,11 +2,10 @@
 #include <iostream>
 #include <vector>
 
-using namespace std::complex_literals;
 using namespace std;
 
-constexpr complex<double> pi() {
-    return std::atan(1) * 4;
+const complex<double> pi() {
+    return atan(1) * 4;
 }
 
 class Matrix {

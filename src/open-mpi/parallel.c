@@ -79,7 +79,7 @@ void fillFreqMatrix(struct Matrix *mat, struct FreqMatrix *freq_domain) {
             int processed_size = i * element_per_process;
             int current_size = processed_size < mat->size ? element_per_process : extra_elements;
 
-            printf("Current Size: %d\n", current_size);
+            printf("Sending: %d\n", i);
 
             MPI_Send(&current_size, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
             MPI_Send(&processed_size, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
@@ -93,13 +93,29 @@ void fillFreqMatrix(struct Matrix *mat, struct FreqMatrix *freq_domain) {
         }
 
         /* Receive Row */
-        int a;
         for (int i = 1; i < world_size; i++) {
             printf("Waiting: %d\n", i);
-            MPI_Recv(&a, 1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+            int processed_size = i * element_per_process;
+            int current_size = processed_size < mat->size ? element_per_process : extra_elements;
+
+            int index_received;
+            MPI_Recv(&index_received, 1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         }
 
         printf("Master Process Finished %d\n", world_rank);
+
+        /* Print Result */
+        double complex sum = 0.0;
+        for (int m = 0; m < mat->size; m++) {
+            for (int n = 0; n < mat->size; n++) {
+                double complex el = freq_domain->mat[m][n];
+                sum += el;
+                printf("(%lf, %lf) ", creal(el), cimag(el));
+            }
+            printf("\n");
+        }
+        printf("Sum : (%lf, %lf)\n", creal(sum), cimag(sum));
 
     } else {
         /* Slave Process */
@@ -120,8 +136,7 @@ void fillFreqMatrix(struct Matrix *mat, struct FreqMatrix *freq_domain) {
         }
 
         /* Send Row */
-        int a = 0;
-        MPI_Send(&a, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+        MPI_Send(&index_received, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
 
         printf("Slave Process %d Finished\n", world_rank);
     }
@@ -135,18 +150,6 @@ int main(void) {
 
     readMatrix(&source);
     fillFreqMatrix(&source, &freq_domain);
-
-    /* Print Result */
-    double complex sum = 0.0;
-    for (int m = 0; m < source.size; m++) {
-        for (int n = 0; n < source.size; n++) {
-            double complex el = freq_domain.mat[m][n];
-            sum += el;
-            printf("(%lf, %lf) ", creal(el), cimag(el));
-        }
-        printf("\n");
-    }
-    printf("Sum : (%lf, %lf)\n", creal(sum), cimag(sum));
 
     return 0;
 }

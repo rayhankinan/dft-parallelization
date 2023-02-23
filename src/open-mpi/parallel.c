@@ -58,7 +58,7 @@ double complex dft(struct Matrix *mat, int k, int l) {
     return element / (double) (mat->size * mat->size);
 }
 
-void fillFreqMatrix(struct Matrix *mat, struct FreqMatrix *freq_domain) {
+void fillMatrix(struct Matrix *mat, struct FreqMatrix *freq_domain) {
     MPI_Init(NULL, NULL);
 
     freq_domain->size = mat->size;
@@ -69,17 +69,21 @@ void fillFreqMatrix(struct Matrix *mat, struct FreqMatrix *freq_domain) {
 
     if (world_rank == 0) {
         /* Master Process */
+        readMatrix(mat);
+
         MPI_Barrier(MPI_COMM_WORLD);
         MPI_Bcast(&(mat->size), 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+        /* TO DO: For loop dapat dihilangkan dengan membuat matriks sebagai contiguous array */
         for (int i = 0; i < mat->size; i++) {
             MPI_Bcast(&(mat->mat[i]), mat->size, MPI_DOUBLE, 0, MPI_COMM_WORLD);
         }
         MPI_Barrier(MPI_COMM_WORLD);
-        
+
+        /* Send Divisible Process */
         int element_per_process = mat->size / world_size;
         int extra_elements = mat->size % world_size;
 
-        /* Send Divisible Process */
         for (int i = 1; i < world_size; i++) {
             int index_sent = i * element_per_process;
             int elements_sent = index_sent < mat->size ? element_per_process : extra_elements;
@@ -103,6 +107,7 @@ void fillFreqMatrix(struct Matrix *mat, struct FreqMatrix *freq_domain) {
             MPI_Recv(&elements_received, 1, MPI_INT, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
             MPI_Recv(&index_received, 1, MPI_INT, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
+            /* TO DO: For loop dapat dihilangkan dengan membuat matriks sebagai contiguous array */
             for (int j = index_received; j < index_received + elements_received; j++) {
                 MPI_Recv(&(freq_domain->mat[j]), mat->size, MPI_DOUBLE_COMPLEX, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
             }
@@ -124,6 +129,8 @@ void fillFreqMatrix(struct Matrix *mat, struct FreqMatrix *freq_domain) {
         /* Slave Process */
         MPI_Barrier(MPI_COMM_WORLD);
         MPI_Bcast(&(mat->size), 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+        /* TO DO: For loop dapat dihilangkan dengan membuat matriks sebagai contiguous array */
         for (int i = 0; i < mat->size; i++) {
             MPI_Bcast(&(mat->mat[i]), mat->size, MPI_DOUBLE, 0, MPI_COMM_WORLD);
         }
@@ -147,6 +154,7 @@ void fillFreqMatrix(struct Matrix *mat, struct FreqMatrix *freq_domain) {
         MPI_Send(&elements_received, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
         MPI_Send(&index_received, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
 
+        /* TO DO: For loop dapat dihilangkan dengan membuat matriks sebagai contiguous array */
         for (int i = index_received; i < index_received + elements_received; i++) {
             MPI_Send(&(freq_domain->mat[i]), mat->size, MPI_DOUBLE_COMPLEX, 0, 0, MPI_COMM_WORLD);
         }
@@ -159,8 +167,7 @@ int main(void) {
     struct Matrix source;
     struct FreqMatrix freq_domain;
 
-    readMatrix(&source);
-    fillFreqMatrix(&source, &freq_domain);
+    fillMatrix(&source, &freq_domain);
 
     return 0;
 }

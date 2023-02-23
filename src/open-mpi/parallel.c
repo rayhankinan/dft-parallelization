@@ -103,13 +103,14 @@ void fillMatrix(struct Matrix *mat, struct FreqMatrix *freq_domain) {
         for (int i = 1; i < world_size; i++) {
             int elements_received;
             int index_received;
+            MPI_Status status;
 
-            MPI_Recv(&elements_received, 1, MPI_INT, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            MPI_Recv(&index_received, 1, MPI_INT, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Recv(&elements_received, 1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
+            MPI_Recv(&index_received, 1, MPI_INT, status.MPI_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
             /* TO DO: For loop dapat dihilangkan dengan membuat matriks sebagai contiguous array */
             for (int j = index_received; j < index_received + elements_received; j++) {
-                MPI_Recv(&(freq_domain->mat[j]), mat->size, MPI_DOUBLE_COMPLEX, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                MPI_Recv(&(freq_domain->mat[j]), mat->size, MPI_DOUBLE_COMPLEX, status.MPI_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
             }
         }
 

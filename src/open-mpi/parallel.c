@@ -34,6 +34,8 @@ double complex handleElement(struct Matrix *mat, int k, int l, int i, int j) {
 /* TO DO: Coba algoritma FFT */
 double complex handleRow(struct Matrix *mat, int k, int l, int i) {
     double complex row = 0.0;
+
+    /* TO DO: Coba Reduce di sini */
     for (int j = 0; j < mat->size; j++) {
         row += handleElement(mat, k, l, i, j);
     }
@@ -45,6 +47,7 @@ double complex handleRow(struct Matrix *mat, int k, int l, int i) {
 double complex handleColumn(struct Matrix *mat, int k, int l) {
     double complex element = 0.0;
 
+    /* TO DO: Coba Reduce di sini */
     for (int i = 0; i < mat->size; i++) {
         element += handleRow(mat, k, l, i);
     }
@@ -59,8 +62,6 @@ double complex dft(struct Matrix *mat, int k, int l) {
 }
 
 void fillMatrix(struct Matrix *mat, struct FreqMatrix *freq_domain) {
-    MPI_Init(NULL, NULL);
-
     int world_rank, world_size;
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
@@ -158,15 +159,15 @@ void fillMatrix(struct Matrix *mat, struct FreqMatrix *freq_domain) {
             MPI_Send(&(freq_domain->mat[i]), mat->size, MPI_DOUBLE_COMPLEX, 0, 0, MPI_COMM_WORLD);
         }
     }
-
-    MPI_Finalize();
 }
 
 int main(void) {
     struct Matrix source;
     struct FreqMatrix freq_domain;
 
+    MPI_Init(NULL, NULL);
     fillMatrix(&source, &freq_domain);
+    MPI_Finalize();
 
     return 0;
 }

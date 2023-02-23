@@ -69,7 +69,13 @@ void fillFreqMatrix(struct Matrix *mat, struct FreqMatrix *freq_domain) {
 
     if (world_rank == 0) {
         /* Master Process */
-
+        MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Bcast(&(mat->size), 1, MPI_INT, 0, MPI_COMM_WORLD);
+        for (int i = 0; i < mat->size; i++) {
+            MPI_Bcast(&(mat->mat[i]), mat->size, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+        }
+        MPI_Barrier(MPI_COMM_WORLD);
+        
         int element_per_process = mat->size / world_size;
         int extra_elements = mat->size % world_size;
 
@@ -80,12 +86,6 @@ void fillFreqMatrix(struct Matrix *mat, struct FreqMatrix *freq_domain) {
 
             MPI_Send(&elements_sent, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
             MPI_Send(&index_sent, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
-            MPI_Send(&mat->size, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
-
-            /* TO DO: Ganti ini dengan broadcast */
-            for (int j = 0; j < mat->size; j++) {
-                MPI_Send(&(mat->mat[j]), mat->size, MPI_DOUBLE, i, 0, MPI_COMM_WORLD);
-            }
         }
 
         /* Work on Master Process */
@@ -122,6 +122,12 @@ void fillFreqMatrix(struct Matrix *mat, struct FreqMatrix *freq_domain) {
 
     } else {
         /* Slave Process */
+        MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Bcast(&(mat->size), 1, MPI_INT, 0, MPI_COMM_WORLD);
+        for (int i = 0; i < mat->size; i++) {
+            MPI_Bcast(&(mat->mat[i]), mat->size, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+        }
+        MPI_Barrier(MPI_COMM_WORLD);
 
         /* Receive Process */
         int elements_received;
@@ -129,12 +135,6 @@ void fillFreqMatrix(struct Matrix *mat, struct FreqMatrix *freq_domain) {
 
         MPI_Recv(&elements_received, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         MPI_Recv(&index_received, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        MPI_Recv(&mat->size, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
-        /* TO DO: Ganti ini dengan broadcast */
-        for (int i = 0; i < mat->size; i++) {
-            MPI_Recv(&(mat->mat[i]), mat->size, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        }
 
         /* Work on Slave Process */
         for (int i = index_received; i < index_received + elements_received; i++) {

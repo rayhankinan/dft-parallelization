@@ -161,11 +161,11 @@ void fillMatrix(struct Matrix *mat, struct FreqMatrix *freq_domain) {
     }
 }
 
-int main(void) {
+int main(int argc, char *argv[]) {
     struct Matrix source;
     struct FreqMatrix freq_domain;
 
-    MPI_Init(NULL, NULL);
+    MPI_Init(&argc, &argv);
     fillMatrix(&source, &freq_domain);
     MPI_Finalize();
 

@@ -88,8 +88,8 @@ void fillMatrix(struct Matrix *mat, struct FreqMatrix *freq_domain) {
             int index_sent = i * element_per_process;
             int elements_sent = index_sent < mat->size ? element_per_process : extra_elements;
 
-            MPI_Send(&elements_sent, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
             MPI_Send(&index_sent, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
+            MPI_Send(&elements_sent, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
         }
 
         /* Work on Master Process */
@@ -105,8 +105,8 @@ void fillMatrix(struct Matrix *mat, struct FreqMatrix *freq_domain) {
             int index_received;
             MPI_Status status;
 
-            MPI_Recv(&elements_received, 1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
-            MPI_Recv(&index_received, 1, MPI_INT, status.MPI_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Recv(&index_received, 1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
+            MPI_Recv(&elements_received, 1, MPI_INT, status.MPI_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
             /* TO DO: For loop dapat dihilangkan dengan membuat matriks sebagai contiguous array */
             for (int j = index_received; j < index_received + elements_received; j++) {
@@ -141,8 +141,8 @@ void fillMatrix(struct Matrix *mat, struct FreqMatrix *freq_domain) {
         int elements_received;
         int index_received;
 
-        MPI_Recv(&elements_received, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         MPI_Recv(&index_received, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(&elements_received, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
         /* Work on Slave Process */
         for (int i = index_received; i < index_received + elements_received; i++) {
@@ -152,8 +152,8 @@ void fillMatrix(struct Matrix *mat, struct FreqMatrix *freq_domain) {
         }
 
         /* Send Row */
-        MPI_Send(&elements_received, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
         MPI_Send(&index_received, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+        MPI_Send(&elements_received, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
 
         /* TO DO: For loop dapat dihilangkan dengan membuat matriks sebagai contiguous array */
         for (int i = index_received; i < index_received + elements_received; i++) {

@@ -61,8 +61,6 @@ double complex dft(struct Matrix *mat, int k, int l) {
 void fillMatrix(struct Matrix *mat, struct FreqMatrix *freq_domain) {
     MPI_Init(NULL, NULL);
 
-    freq_domain->size = mat->size;
-
     int world_rank, world_size;
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
@@ -70,6 +68,7 @@ void fillMatrix(struct Matrix *mat, struct FreqMatrix *freq_domain) {
     if (world_rank == 0) {
         /* Master Process */
         readMatrix(mat);
+        freq_domain->size = mat->size;
 
         MPI_Barrier(MPI_COMM_WORLD);
         MPI_Bcast(&(mat->size), 1, MPI_INT, 0, MPI_COMM_WORLD);

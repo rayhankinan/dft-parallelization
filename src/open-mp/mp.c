@@ -9,7 +9,6 @@ struct Matrix {
     int size;
     double mat[MAX_N][MAX_N];
 };
-
 struct FreqMatrix {
     int size;
     double complex mat[MAX_N][MAX_N];
@@ -30,11 +29,9 @@ double complex handleElement(struct Matrix *mat, int k, int l, int i, int j) {
     return element;
 }
 
-/* TO DO: Coba algoritma FFT */
 double complex handleRow(struct Matrix *mat, int k, int l, int i) {
     double complex row = 0.0;
 
-    /* TO DO: Coba Reduce di sini */
     for (int j = 0; j < mat->size; j++) {
         row += handleElement(mat, k, l, i, j);
     }
@@ -42,11 +39,9 @@ double complex handleRow(struct Matrix *mat, int k, int l, int i) {
     return row;
 }
 
-/* TO DO: Coba algoritma FFT */
 double complex handleColumn(struct Matrix *mat, int k, int l) {
     double complex element = 0.0;
 
-    /* TO DO: Coba Reduce di sini */
     for (int i = 0; i < mat->size; i++) {
         element += handleRow(mat, k, l, i);
     }
@@ -66,14 +61,15 @@ int main(void) {
     readMatrix(&source);
     freq_domain.size = source.size;
     
+    // make the code to executed in parallel and the data is shared in all threads
     #pragma omp parallel shared(freq_domain, source)
     {
+        // execute the loop in parallel and collapse the two nested loops into single loop
         #pragma omp for collapse(2)
         for (int k = 0; k < source.size; k++) {
             for (int l = 0; l < source.size; l++) {
-            freq_domain.mat[k][l] = dft(&source, k, l);
+                freq_domain.mat[k][l] = dft(&source, k, l);
             }
-        }
     }
 
     double complex sum = 0.0;

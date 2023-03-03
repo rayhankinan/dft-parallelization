@@ -1,6 +1,6 @@
 # Tugas Kecil - Paralel DFT
 
-## Open MPI
+## Open MP
 
 Program ini dibuat untuk memenuhi tugas kecil mata kuliah IF3230 Sistem Paralel dan Terdistribusi 2023. Program ini dibuat menggunakan bahasa pemrograman C dan library OpenMP. Paralelisasi program memanfaatkan OpenMP dengan menggunakan directive pragma untuk melakukan parallelisasi pada perhitungan DFT.
 

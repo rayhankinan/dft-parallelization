@@ -124,6 +124,7 @@ void fillMatrix(struct Matrix *mat, struct FreqMatrix *freq_domain) {
             }
             printf("\n");
         }
+        sum /= (double) (mat->size);
         printf("Sum : (%lf, %lf)\n", creal(sum), cimag(sum));
 
     } else {

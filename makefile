@@ -8,7 +8,7 @@ mpi:
 
 serial:
 	gcc src/serial/c/serial.c -o $(OUTPUT_FOLDER)/serial -lm
-	time ./${OUTPUT_FOLDER}/serail < ./test_case/32.txt > ${TEST_FOLDER}/serial.txt
+	time ./${OUTPUT_FOLDER}/serial < ./test_case/32.txt > ${TEST_FOLDER}/serial.txt
 
 mp:
 	gcc src/open-mp/mp.c --openmp -o $(OUTPUT_FOLDER)/open-mp -lm

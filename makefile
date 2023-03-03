@@ -4,7 +4,7 @@ TEST_FOLDER = result
 all: serial mpi mp
 
 mpi:
-	mpicc src/open-mpi/parallel.c -o $(OUTPUT_FOLDER)/open-mpi -lm
+	mpicc src/open-mpi/open-mpi.c -o $(OUTPUT_FOLDER)/open-mpi -lm
 	time ./${OUTPUT_FOLDER}/open-mpi < ./test_case/32.txt > ${TEST_FOLDER}/open-mpi.txt
 
 serial:

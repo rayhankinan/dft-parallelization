@@ -70,6 +70,7 @@ int main(void) {
             for (int l = 0; l < source.size; l++) {
                 freq_domain.mat[k][l] = dft(&source, k, l);
             }
+        }
     }
 
     double complex sum = 0.0;

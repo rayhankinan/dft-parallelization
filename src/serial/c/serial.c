@@ -54,6 +54,7 @@ int main(void) {
         }
         printf("\n");
     }
+    sum /= source.size;
 
     printf("Sum : (%lf, %lf)\n", creal(sum), cimag(sum));
 

@@ -1,7 +1,7 @@
 OUTPUT_FOLDER = bin
 TEST_FOLDER = result
 
-all: serial mpi mp
+all: serial mpi mp cuda
 
 mpi:
 	mpicc src/open-mpi/open-mpi.c -o $(OUTPUT_FOLDER)/open-mpi -lm
@@ -14,3 +14,7 @@ serial:
 mp:
 	gcc src/open-mp/mp.c --openmp -o $(OUTPUT_FOLDER)/open-mp -lm
 	time ./${OUTPUT_FOLDER}/open-mp < ./test_case/32.txt > ${TEST_FOLDER}/open-mp.txt
+
+cuda:
+	nvcc src/cuda/cuda.cu -o $(OUTPUT_FOLDER)/cuda -lm
+	time ./${OUTPUT_FOLDER}/cuda < ./test_case/32.txt > ${TEST_FOLDER}/cuda.txt

@@ -17,4 +17,4 @@ mp:
 
 cuda:
 	nvcc src/cuda/cuda.cu -o $(OUTPUT_FOLDER)/cuda -lm
-	time ./${OUTPUT_FOLDER}/cuda < ./test_case/512.txt > ${TEST_FOLDER}/cuda.txt
+	time ./${OUTPUT_FOLDER}/cuda < ./test_case/32.txt > ${TEST_FOLDER}/cuda.txt

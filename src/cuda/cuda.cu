@@ -101,6 +101,3 @@ int main() {
     printMatrix(&freq_domain);
     return 0;
 }
-
-
-

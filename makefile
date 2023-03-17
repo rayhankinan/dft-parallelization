@@ -17,8 +17,8 @@ mp:
 
 cuda:
 	nvcc src/cuda/cuda.cu -o $(OUTPUT_FOLDER)/cuda -lm
-	time ./${OUTPUT_FOLDER}/cuda < ./test_case/32.txt > ${TEST_FOLDER}/cuda.txt
+	time ./${OUTPUT_FOLDER}/cuda < ./test_case/512.txt > ${TEST_FOLDER}/cuda.txt
 
 cudaFFT:
 	nvcc src/cuda/cudaFFT.cu -o $(OUTPUT_FOLDER)/cudaFFT -lm
-	time ./${OUTPUT_FOLDER}/cudaFFT < ./test_case/32.txt > ${TEST_FOLDER}/cudaFFT.txt
+	time ./${OUTPUT_FOLDER}/cudaFFT < ./test_case/512.txt > ${TEST_FOLDER}/cudaFFT.txt

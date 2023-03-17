@@ -38,6 +38,16 @@ void printMatrix(FreqMatrix *m) {
     printf("sum = (%lf, %lf)", cuCreal(sum), cuCimag(sum));
 }
 
+void transpose(FreqMatrix *m) {
+    for (int i = 0; i < m->size; i++) {
+        for (int j = i + 1; j < m->size; j++) {
+            cuDoubleComplex tmp = m->mat[i][j];
+            m->mat[i][j] = m->mat[j][i];
+            m->mat[j][i] = tmp;
+        }
+    }
+}
+
 __global__ void fft_kernel(FreqMatrix *m, FreqMatrix *fm, int size) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
@@ -89,13 +99,7 @@ void fft(Matrix *mat, FreqMatrix *freq_domain) {
     cudaDeviceSynchronize();
     cudaMemcpy(freq_domain, d_freq_domain, sizeof(FreqMatrix), cudaMemcpyDeviceToHost);
 
-    for (int i = 0; i < size; i++) {
-        for (int j = i + 1; j < size; j++) {
-            cuDoubleComplex tmp = freq_domain->mat[i][j];
-            freq_domain->mat[i][j] = freq_domain->mat[j][i];
-            freq_domain->mat[j][i] = tmp;
-        }
-    }
+    transpose(freq_domain);
 
     cudaMemcpy(d_mat, freq_domain, sizeof(FreqMatrix), cudaMemcpyHostToDevice);
 
